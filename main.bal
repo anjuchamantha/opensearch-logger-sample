@@ -2,14 +2,14 @@ import ballerina/http;
 import ballerina/log;
 import ballerinax/health.fhir.r4;
 
-@http:ServiceConfig {
-    auth: [
-        {
-            fileUserStoreConfig: {},
-            scopes: ["admin"]
-        }
-    ]
-}
+// @http:ServiceConfig {
+//     auth: [
+//         {
+//             fileUserStoreConfig: {},
+//             scopes: ["admin"]
+//         }
+//     ]
+// }
 service http:InterceptableService /a on new http:Listener(8081) {
     resource function get r4/send/[string id](http:Caller caller, http:Request httpRequest) returns error? {
 
@@ -59,14 +59,14 @@ service http:InterceptableService /a on new http:Listener(8081) {
 }
 
 // This service is used to simulate a moreInfo endpoint to fetch additional patient information
-@http:ServiceConfig {
-    auth: [
-        {
-            fileUserStoreConfig: {},
-            scopes: ["admin"]
-        }
-    ]
-}
+// @http:ServiceConfig {
+//     auth: [
+//         {
+//             fileUserStoreConfig: {},
+//             scopes: ["admin"]
+//         }
+//     ]
+// }
 service http:Service /b on new http:Listener(8082) {
     resource function post more_info(map<string> payload) returns json|error {
 

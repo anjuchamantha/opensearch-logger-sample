@@ -25,13 +25,15 @@ import ballerinax/health.fhir.r4;
 # + enabled - if analytics is enabled or not
 # + attributes - the list of attributes picked from x-jwt-assertion to publish
 # + url - the URL of the analytics server to publish logs
-# + auth - the authentication configuration for the analytics server
+# + username - the username for the analytics server
+# + password - the password for the analytics server
 # + moreInfo - configuration for fetching more information
 public type AnalyticsConfig record {|
     boolean enabled;
     string[] attributes;
     string url;
-    json auth?;
+    string username;
+    string password;
     MoreInfoConfig moreInfo;
 |};
 
@@ -39,22 +41,26 @@ public type AnalyticsConfig record {|
 #
 # + enabled - if more info fetching is enabled or not
 # + url - the URL to fetch more information
-# + auth - the authentication configuration for the more info server
+# + username - the username for the more info server
+# + password - the password for the more info server
 public type MoreInfoConfig record {|
     boolean enabled;
     string url;
-    json auth?;
+    string username;
+    string password;
 |};
 
 configurable AnalyticsConfig analytics = {
     enabled: true,
     attributes: ["fhirUser", "client_id", "iss"],
     url: "http://localhost:9200/fhirr4/_doc",
-    auth: null,
+    username: "",
+    password: "",
     moreInfo: {
         enabled: false,
         url: "",
-        auth: null
+        username: "",
+        password: ""
     }
 };
 
@@ -71,19 +77,25 @@ isolated service class AnalyticsResponseInterceptor {
     public function init(r4:ResourceAPIConfig apiConfig) {
         self.resourceType = apiConfig.resourceType;
         // Initialize the log publisher HTTP client
-        if analytics?.auth is () {
+        if analytics.username is "" {
             self.logPublisherHttpClient = new (analytics.url);
         } else {
-            self.logPublisherHttpClient = new (analytics.url, auth = <http:ClientAuthConfig>analytics?.auth);
+            self.logPublisherHttpClient = new (analytics.url, auth = {
+                username: analytics.username,
+                password: analytics.password
+            });
         }
 
         // Initialize the analytics more info HTTP client
         if !analytics.moreInfo.enabled {
             self.moreInfoHttpClient = ();
-        } else if analytics.moreInfo?.auth is () {
+        } else if analytics.moreInfo.username is "" {
             self.moreInfoHttpClient = new (analytics.moreInfo.url);
         } else {
-            self.moreInfoHttpClient = new (analytics.moreInfo.url, auth = <http:ClientAuthConfig?>analytics.moreInfo?.auth);
+            self.moreInfoHttpClient = new (analytics.moreInfo.url, auth = {
+                username: analytics.moreInfo.username,
+                password: analytics.moreInfo.password
+            });
         }
     }
 
